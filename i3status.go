@@ -40,16 +40,11 @@ func Bluetooth(conn *dbus.Conn) []map[string]dbus.Variant {
 		}
 
 		var dev []dbus.ObjectPath
-		err = call.Store(&dev)
-		if err != nil {
+		if err = call.Store(&dev); err != nil {		
 			panic(err)
 		}
 
-		cat := make([]dbus.ObjectPath, len(devices)+len(dev))
-		copy(cat, devices)
-		copy(cat[len(devices):], dev)
-
-		devices = cat
+		devices = append(devices, dev...)		
 	}
 	props := make([]map[string]dbus.Variant, 0)
 
@@ -61,8 +56,7 @@ func Bluetooth(conn *dbus.Conn) []map[string]dbus.Variant {
 		}
 
 		dict := make(map[string]dbus.Variant)
-		err = call.Store(&dict)
-		if err != nil {
+		if err = call.Store(&dict); err != nil {		
 			panic(err)
 		}
 
@@ -80,8 +74,8 @@ func Default(buffer chan []Module, confpath string) {
 	}
 	cmd.Start()
 
-	for {
-		bufreader := bufio.NewReader(reader)
+	bufreader := bufio.NewReader(reader)
+	for {	
 		line, _, err := bufreader.ReadLine()
 		if err != nil {
 			// fmt.Println(err)
@@ -105,8 +99,7 @@ func main() {
 	var (
 		defaultChannel chan []Module
 		defaultModules []Module
-		btModules      []Module
-		modules        []Module
+		btModules      []Module		
 
 		confpath string
 	)
@@ -150,11 +143,9 @@ func main() {
 			}
 		}
 
-		modules = make([]Module, len(defaultModules)+len(btModules))
-		copy(modules, btModules)
-		copy(modules[len(btModules):], defaultModules)
+		btModules = append(btModules, defaultModules...)
 
-		output, err := json.Marshal(modules)
+		output, err := json.Marshal(btModules)
 		if err != nil {
 			panic(err)
 		}
